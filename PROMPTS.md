@@ -553,3 +553,48 @@ The repo link, or
 The output of npm test and npm run test:e2e, plus the green CI status, plus the contents of docker-compose.yml and main.ts
 
 I’ll review it against the checklist above. Once it passes, Phase 1 starts: you write the auth tests (the red commit) and I review them before any AI touches the implementation.
+
+Scaffold a monorepo: /backend (NestJS + TypeScript + Prisma + PostgreSQL, Jest + Supertest)
+and /frontend (Vite + React + TS + Tailwind). Add:
+- docker-compose.yml with two Postgres services: dev (port 5432) and test (port 5433)
+- backend .env.example (DATABASE_URL, TEST_DATABASE_URL, JWT_SECRET, JWT_EXPIRES_IN)
+- global prefix "/api", ValidationPipe with whitelist + forbidNonWhitelisted
+- GET /api/health returning { status: "ok" }
+- one dummy e2e test hitting /api/health against the test DB
+  Extra requirements:
+- Pin exact versions of Prisma and NestJS in package.json (no ^).
+- Prisma schema should have only the datasource and generator, no models yet.
+- Jest e2e config must load TEST_DATABASE_URL (not DATABASE_URL) and run with --runInBand.
+- Add npm scripts: test, test:e2e, test:cov, db:migrate, db:migrate:test.
+- Frontend: Vite React TS template + Tailwind configured, one placeholder page, nothing else.
+- Do not create any git commits.
+- GitHub Actions workflow that starts Postgres, runs migrations, and runs backend tests with coverage
+- root .gitignore
+  Do NOT implement auth or vehicles. Keep commits out of scope.
+  Scaffold complete—no commits created.
+
+- Backend NestJS + TypeScript + Prisma configuration, health endpoint at `/api/health`, shared global validation/prefix setup, scripts, exact NestJS/Prisma pins, and a model-free Prisma schema.
+- E2E health test explicitly uses `TEST_DATABASE_URL` to connect to the test Postgres instance before calling the API.
+- Frontend Vite React TS + Tailwind placeholder page.
+- Root Docker Compose with dev Postgres on `5432` and test Postgres on `5433`.
+- GitHub Actions workflow installs, migrates, runs coverage, and executes e2e tests.
+- Root `.gitignore` and backend `.env.example` added.
+
+Verified locally:
+
+- `backend npm run build` ✅
+- `backend npm test` ✅
+- `frontend npm run build` ✅
+
+I could not run `test:e2e` because Docker is not installed in this environment. Once Docker is available:
+
+```powershell
+docker compose up -d
+Copy-Item backend/.env.example backend/.env
+cd backend
+npm run db:migrate:test
+npm run test:e2e
+```
+
+Key files: [docker-compose.yml](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\docker-compose.yml), [backend package.json](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\backend\package.json), [e2e test](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\backend\test\health.e2e-spec.ts), [CI workflow](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\.github\workflows\ci.yml).
+
