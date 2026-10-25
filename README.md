@@ -12,6 +12,23 @@ Live demo: `TODO: add live demo URL`.
 
 The Render free tier sleeps when idle, so its first request can take 30 to 60 seconds.
 
+## Screenshots
+
+### Public vehicle catalogue
+
+![Public vehicle catalogue](docs/screenshots/catalogue.png)
+
+### Admin inventory management
+
+![Vehicle detail and purchase](docs/screenshots/vehicle-detail.png)
+### Login
+
+![Login page](docs/screenshots/login.png)
+
+### Vehicle detail and purchase
+
+![Admin inventory management](docs/screenshots/admin-inventory.png)
+
 ## Features and RBAC
 
 - **Viewer**: anonymous visitor; this is not a database role. Viewers can browse the public catalogue.
