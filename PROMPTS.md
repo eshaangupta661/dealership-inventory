@@ -685,3 +685,97 @@ Verified:
 - `npm run test:e2e` — 48 passing
 - `npm test` — 2 passing
 
+Context: GitHub Actions CI for this repo fails at the "npm ci" step in /backend with an
+npm ERESOLVE peer dependency conflict. The log shows conflicts between @nestjs/config@4.0.0,
+@nestjs/mapped-types@2.1.0 (peer class-validator ^0.13.0 || ^0.14.0) and the exact-pinned
+@nestjs/common. Local "npm install" works; "npm ci" on the runner is strict.
+Task: make "npm ci" succeed on the CI runner (Linux, Node 20) and locally on Windows.
+Steps:
+1. Reproduce: in /backend run rm -rf node_modules (or Remove-Item on Windows), then npm ci.
+   Read the FULL error output (including the first lines) and identify which package ranges
+   actually conflict. Explain the root cause before changing anything.
+2. Preferred fix: align versions so the peers are satisfied (same major for @nestjs/common,
+   @nestjs/core, @nestjs/platform-express, @nestjs/testing, @nestjs/config, @nestjs/jwt,
+   @nestjs/passport, @nestjs/mapped-types; class-validator within the range mapped-types accepts).
+   Keep exact pins (no ^ or ~) and regenerate package-lock.json.
+3. If aligning is not practical, fall back to adding backend/.npmrc containing
+   legacy-peer-deps=true, and say clearly in your summary that you used the fallback and why.
+4. Make sure .github/workflows/ci.yml installs from /backend using npm ci (working-directory
+   or cd), and does not need extra flags once .npmrc or the aligned versions are in place.
+5. Verify from /backend, in this order, and report the full output of each:
+   npm ci
+   npx prisma generate
+   npm run build
+   npm test
+   npm run test:e2e   (requires docker compose up -d)
+Rules:
+- Do NOT modify anything under /backend/test.
+- Do NOT change application logic in /backend/src, especially InventoryService.purchase
+  (single conditional updateMany) and the auth/roles guards.
+- Do not add dependencies other than what step 2 requires; no ^ in package.json.
+- Do not create git commits.
+When done, summarise: root cause, files changed, and the output of each verification command.
+
+Fixed the strict peer conflict without using `.npmrc` fallback.
+
+Root cause: `@nestjs/mapped-types@2.1.0` declares optional peer support for `class-validator` only as `^0.13.0 || ^0.14.0`; the backend exact-pinned `class-validator@0.15.1`. Nest 11 dependencies are otherwise compatible—`@nestjs/config@4.0.0` supports Nest common 10 or 11.
+
+Changed:
+
+- [backend/package.json](C:/Users/ESHAAN%20GUPTA/Desktop/dealership-inventory/dealership-inventory/backend/package.json): `class-validator` `0.15.1` → exact `0.14.4`
+- [backend/package-lock.json](C:/Users/ESHAAN%20GUPTA/Desktop/dealership-inventory/dealership-inventory/backend/package-lock.json): regenerated
+- [.github/workflows/ci.yml](C:/Users/ESHAAN%20GUPTA/Desktop/dealership-inventory/dealership-inventory/.github/workflows/ci.yml): Node `20`; retains backend working directory and plain `npm ci`
+
+No application code or files under `backend/test` were changed. No `.npmrc` was needed.
+
+Verification (Windows; used `npm.cmd`/`npx.cmd` because this PowerShell policy blocks `npm.ps1`):
+
+```text
+npm ci
+added 804 packages, and audited 805 packages in 23s
+
+121 packages are looking for funding
+23 vulnerabilities (3 low, 10 moderate, 9 high, 1 critical)
+```
+
+It emitted only deprecation warnings; no peer-resolution errors.
+
+```text
+npx prisma generate
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v6.1.0) to .\node_modules\@prisma\client in 70ms
+```
+
+```text
+npm run build
+> dealership-inventory-backend@0.0.1 build
+> nest build
+```
+
+```text
+npm test
+PASS src/auth/roles.guard.spec.ts
+PASS src/health/health.controller.spec.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       2 passed, 2 total
+Snapshots:   0 total
+Time:        3.392 s
+```
+
+```text
+npm run test:e2e
+PASS test/vehicles.e2e-spec.ts
+PASS test/inventory.e2e-spec.ts
+PASS test/auth.e2e-spec.ts
+PASS test/health.e2e-spec.ts
+
+Test Suites: 4 passed, 4 total
+Tests:       60 passed, 60 total
+Snapshots:   0 total
+Time:        25.626 s
+```
+
+Docker Compose services were started for the e2e run and remain running.
