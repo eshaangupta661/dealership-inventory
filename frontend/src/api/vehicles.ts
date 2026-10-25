@@ -7,7 +7,7 @@ export type VehicleSearchParams = Partial<{
   maxKm: number; sort: string; page: number; limit: number;
 }>;
 
-export type VehiclePayload = Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt'>;
+export type VehiclePayload = Omit<Vehicle, 'id' | 'createdAt' | 'updatedAt' | 'imageUrl'> & { imageUrl?: string };
 
 function query(params: VehicleSearchParams) {
   const values = new URLSearchParams();

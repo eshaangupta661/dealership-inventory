@@ -9,7 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { VehicleDetailPage } from './pages/VehicleDetailPage';
 
-function RequireAdmin({ children }: { children: ReactNode }) {
+export function RequireAdmin({ children }: { children: ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
   if (loading) return <main className="p-6 text-center text-slate-600">Loading…</main>;
   if (!user) return <Navigate to="/login" replace />;
