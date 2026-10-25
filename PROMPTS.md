@@ -598,3 +598,90 @@ npm run test:e2e
 
 Key files: [docker-compose.yml](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\docker-compose.yml), [backend package.json](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\backend\package.json), [e2e test](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\backend\test\health.e2e-spec.ts), [CI workflow](C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\.github\workflows\ci.yml).
 
+Implement the auth module in /backend so that backend/test/auth.e2e-spec.ts passes.
+Do NOT modify the test file. Do not create git commits.
+Requirements:
+- Prisma: add a User model (id Int autoincrement, email String unique,
+  passwordHash String, role enum Role { CUSTOMER ADMIN } default CUSTOMER,
+  createdAt DateTime default now). Create a migration and make the
+  db:migrate and db:migrate:test scripts apply it (the test DB is on port 5433).
+- PrismaService (global module) in src/prisma.
+- AuthModule with AuthController, AuthService, UsersService.
+- POST /api/auth/register: DTO with @IsEmail and @MinLength(8) on password.
+  Hash with bcrypt (cost 10). Return { id, email, role, createdAt } only.
+  Duplicate email -> 409 (ConflictException). Role is always CUSTOMER.
+- POST /api/auth/login: return 200 { accessToken }. Wrong password and
+  unknown email must both throw the same UnauthorizedException with the
+  same message ("Invalid credentials").
+- GET /api/auth/me protected by a JwtAuthGuard (passport-jwt). Return the
+  user without passwordHash.
+- JWT payload { sub, role }. Secret and expiry from JWT_SECRET and JWT_EXPIRES_IN
+  via @nestjs/config. Reject expired tokens (ignoreExpiration: false).
+- Create a RolesGuard and @Roles() decorator now (used in Phase 2), with a
+  unit test for the guard.
+- Pin exact versions (no ^) for new dependencies.
+- Make sure .env.example has JWT_SECRET and JWT_EXPIRES_IN, and that the
+  e2e jest setup loads them for the test run.
+
+  Implemented the backend auth module and Prisma user migration.
+
+- Added `User` / `Role` Prisma schema and committed migration.
+- Added global Prisma integration to the app.
+- Added register, login, JWT-protected `/api/auth/me`, bcrypt hashing, and safe user responses.
+- Added `RolesGuard`, `@Roles()`, and its unit test.
+- Pinned all new dependencies to exact versions.
+- Updated test environment to point the app at `TEST_DATABASE_URL` (port 5433).
+- Fixed `db:migrate:test` to deploy committed migrations reliably on Windows.
+- Left `auth.e2e-spec.ts` unchanged and made no commits.
+
+Verified successfully:
+
+- `npm run db:migrate:test`
+- `npm run test:e2e` — 15 passing
+- `npm run build`
+- `npm test` — 2 passing
+
+Implement the vehicles module in /backend so that backend/test/vehicles.e2e-spec.ts
+passes. Do NOT modify any test file. Do not create git commits.
+- Prisma: add enums FuelType (PETROL DIESEL CNG ELECTRIC HYBRID), Transmission
+  (MANUAL AUTOMATIC), Condition (NEW USED), and a Vehicle model: id Int autoincrement,
+  make, model, variant (String), category (String), fuelType, transmission, condition,
+  year Int, kmDriven Int, ownerCount Int default 1, price Int, quantity Int default 0,
+  color String, imageUrl String?, createdAt, updatedAt. Add indexes on make, category, price.
+  Create a migration and apply it to the dev and test databases.
+- Use JwtAuthGuard + RolesGuard + @Roles(Role.ADMIN) on POST, PUT, DELETE only.
+  GET routes are public.
+- Route order in the controller: GET /vehicles/filters and GET /vehicles/search
+  must be declared BEFORE GET /vehicles/:id. Use ParseIntPipe on :id.
+- DTOs with class-validator: price > 0 (Int), quantity >= 0, year between 1990 and
+  next year, kmDriven >= 0, ownerCount >= 1, enums via @IsEnum. PUT uses PartialType
+  of the create DTO.
+- Query DTO for list/search with class-transformer: page (default 1), limit
+  (default 12, max 50), sort (price_asc, price_desc, year_desc, newest),
+  q, make, model, category, fuelType, transmission, condition, minPrice, maxPrice,
+  minYear, maxYear, maxKm. Return 400 if minPrice > maxPrice.
+- make/model/category/q are case-insensitive (Prisma mode: 'insensitive'); q matches
+  make OR model OR variant.
+- Keep the query-building logic in a separate class or function, not in the controller.
+- GET /vehicles/filters returns distinct sorted makes, models, categories, fuelTypes,
+  transmissions, plus price {min,max} and year {min,max}.
+- DELETE returns 204. Missing id returns 404 for GET, PUT, DELETE.
+- Pin exact versions for any new dependency.
+
+Implemented the vehicles module and migration.
+
+- Added Vehicle schema, fuel/transmission/condition enums, indexes, and Prisma migration.
+- Applied migration to both dev (5432) and test (5433) databases.
+- Added public list/search/filter/detail routes with pagination, filtering, sorting, and case-insensitive matches.
+- Added admin-only create/update/delete using JWT + roles guards.
+- Added validated create/update/query DTOs; update uses `PartialType`.
+- Added pinned `@nestjs/mapped-types` dependency.
+- Kept all test files unchanged and created no commits.
+
+Verified:
+
+- `npm run db:migrate`
+- `npm run db:migrate:test`
+- `npm run test:e2e` — 48 passing
+- `npm test` — 2 passing
+
