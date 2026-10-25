@@ -12,10 +12,52 @@ enum Role {
   ADMIN
 }
 
+enum FuelType {
+  PETROL
+  DIESEL
+  CNG
+  ELECTRIC
+  HYBRID
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+enum Condition {
+  NEW
+  USED
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
   passwordHash String
   role         Role     @default(CUSTOMER)
   createdAt    DateTime @default(now())
+}
+
+model Vehicle {
+  id           Int          @id @default(autoincrement())
+  make         String
+  model        String
+  variant      String
+  category     String
+  fuelType     FuelType
+  transmission Transmission
+  condition    Condition
+  year         Int
+  kmDriven     Int
+  ownerCount   Int          @default(1)
+  price        Int
+  quantity     Int          @default(0)
+  color        String
+  imageUrl     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([make])
+  @@index([category])
+  @@index([price])
 }
