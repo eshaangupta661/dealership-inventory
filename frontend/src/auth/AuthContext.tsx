@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
-import { apiClient } from '../api/client';
+import { useLocation, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { apiClient, resetSessionExpiryNotification, setSessionExpiryHandler } from '../api/client';
 import type { User } from '../api/types';
 
 const TOKEN_KEY = 'token';
@@ -18,11 +20,32 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const loadCurrentUser = async () => {
     const currentUser = await apiClient<User>('/auth/me');
     setUser(currentUser);
   };
+
+  useEffect(() => {
+    setSessionExpiryHandler(() => {
+      localStorage.removeItem(TOKEN_KEY);
+      setUser(null);
+
+      // Don't show the session-expired toast or redirect on auth pages
+      if (location.pathname === '/login' || location.pathname === '/register') return;
+
+      toast.error('Session expired, please log in again');
+      navigate(
+        `/login?redirect=${encodeURIComponent(`${location.pathname}${location.search}`)}`,
+        { replace: true }
+      );
+    });
+
+    return () => setSessionExpiryHandler(undefined);
+  }, [location.pathname, location.search, navigate]);
+
 
   useEffect(() => {
     if (!localStorage.getItem(TOKEN_KEY)) {
@@ -40,6 +63,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     setUser(null);
+    resetSessionExpiryNotification();
   };
 
   const login = async (email: string, password: string) => {
@@ -48,6 +72,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       body: { email, password },
     });
     localStorage.setItem(TOKEN_KEY, accessToken);
+    resetSessionExpiryNotification();
     try {
       await loadCurrentUser();
     } catch (error) {
