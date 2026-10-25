@@ -779,3 +779,148 @@ Time:        25.626 s
 ```
 
 Docker Compose services were started for the e2e run and remain running.
+Context: same frontend (Vite + React + TS + Tailwind, react-router-dom, @tanstack/react-query, react-hot-toast, Vitest + RTL). All main features exist: listing, detail, login/register, admin.
+Rules: do NOT modify any backend file or any existing test file (you may add new tests). No git commits. No new dependencies; if unavoidable, exact-pin (no ^). Do not change existing behaviour except where a task below says so. Run npm test and npm run build in frontend/ and report real output.
+Tasks:
+1. NotFound page for unknown routes (link back to the listing). Unknown /vehicles/:id (API 404) shows a friendly "Car not found" state, not a blank page or endless skeleton.
+2. Session expiry: if any authenticated request returns 401, clear the stored token and user in AuthContext, show one toast ("Session expired, please log in again"), and redirect to /login?redirect=<current path>. Make sure multiple parallel 401s produce only one toast. Public GET requests must not trigger this.
+3. Header: logout button; mobile layout (below 640px) uses a collapsible menu that is keyboard accessible (button with aria-expanded). Show the logged-in user's email.
+4. Empty and error states: listing with zero results shows "No cars match your filters" with a Clear filters button; admin table has an empty state.
+5. Set document.title per page (Listing, Car detail "Make Model", Login, Register, Admin).
+6. Accessibility pass: every input has a label, buttons have discernible text, dialogs trap focus or at minimum return focus to the trigger on close, visible focus rings.
+7. New RTL tests: a 401 on an authenticated call logs out and redirects with a single toast; unknown route shows NotFound; zero-result listing shows the clear-filters button.
+Finish with: files changed, test output, anything you were unsure about.
+Implemented the frontend resilience, session-expiry, mobile header, empty-state, title, and accessibility updates. No backend or existing tests were modified.
+
+Files changed:
+
+- Core/auth/UI: `App.tsx`, `api/client.ts`, `auth/AuthContext.tsx`, `Header.tsx`, `ConfirmDialog.tsx`, `index.css`
+- Pages: `ListingPage.tsx`, `VehicleDetailPage.tsx`, `LoginPage.tsx`, `RegisterPage.tsx`, `AdminPage.tsx`, new `NotFoundPage.tsx`
+- New RTL tests: `App.not-found.test.tsx`, `auth/session-expiry.test.tsx`, `pages/ListingPage.empty.test.tsx`
+- Supporting existing-worktree additions: `FilterSidebar.tsx`, `VehicleCard.tsx`, `lib/`
+
+Validation output:
+
+```text
+npm.cmd test
+Test Files  10 passed (10)
+Tests       16 passed (16)
+```
+
+```text
+npm.cmd run build
+✓ 91 modules transformed.
+✓ built in 1.83s
+```
+
+The test run emits existing React Router v7 future-flag warnings only; there were no test failures or build errors.
+Context: NestJS backend in backend/. npm run build (nest build) currently emits dist/src/main.js instead of dist/main.js, because prisma/seed.ts sits outside src/ and gets pulled into the compilation, which changes the inferred root directory. Production (Render) will run node dist/main, which currently fails with MODULE_NOT_FOUND.
+Rules:
+- Only change backend/tsconfig.build.json, and only if that is enough. If you believe another file must change, stop and explain instead of editing it.
+- Do NOT modify any test file, any source file under backend/src, prisma/schema.prisma, migrations, or package.json.
+- Do NOT move or rewrite prisma/seed.ts. The seed must keep working via npm run db:seed.
+- No new dependencies. No git commits.
+- Keep every existing entry in the "exclude" array; add "prisma" (and keep node_modules, dist, test as they are).
+Steps:
+1. Show the current backend/tsconfig.build.json.
+2. Make the minimal fix so the build emits dist/main.js.
+3. Delete backend/dist and backend/tsconfig.build.tsbuildinfo (if it exists), then run npm run build.
+4. Run Get-ChildItem dist -Recurse -Filter main.js and confirm the only result is dist\main.js (not dist\src\main.js).
+5. Run node dist/main for about 5 seconds to confirm it starts and maps routes (it needs the dev Postgres on port 5432), then stop it.
+6. Run npx tsc --noEmit -p tsconfig.json to confirm prisma/seed.ts still type-checks.
+7. Run npm test (unit tests) and report the real output. Run npm run test:e2e only if the test DB on port 5433 is up; otherwise say you skipped it.
+Finish with: the exact diff, the output of steps 4 to 7, and anything you were unsure about.
+Fixed the Nest build root inference with the only permitted change.
+
+Exact diff:
+
+```diff
+ {
+   "extends": "./tsconfig.json",
+-  "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
++  "exclude": ["node_modules", "dist", "test", "**/*spec.ts", "prisma"]
+ }
+```
+
+Verification:
+
+```text
+npm run build
+> nest build
+```
+
+Step 4:
+
+```text
+Get-ChildItem dist -Recurse -Filter main.js
+
+C:\Users\ESHAAN GUPTA\Desktop\dealership-inventory\dealership-inventory\backend\dist\main.js
+```
+
+Only `dist\main.js` was emitted; no `dist\src\main.js`.
+
+Step 5: `node dist/main` started successfully and mapped routes, including:
+
+```text
+Mapped {/api/health, GET} route
+Mapped {/api/auth/login, POST} route
+Mapped {/api/vehicles, GET} route
+Nest application successfully started
+```
+
+Stopped after startup confirmation.
+
+Step 6:
+
+```text
+npx tsc --noEmit -p tsconfig.json
+```
+
+Completed with no output/errors, so `prisma/seed.ts` still type-checks.
+
+Step 7 unit tests:
+
+```text
+PASS src/auth/roles.guard.spec.ts
+PASS src/health/health.controller.spec.ts
+
+Test Suites: 2 passed, 2 total
+Tests:       2 passed, 2 total
+```
+
+Port 5433 was reachable, so E2E tests were run:
+
+```text
+PASS test/vehicles.e2e-spec.ts
+PASS test/inventory.e2e-spec.ts
+PASS test/auth.e2e-spec.ts
+PASS test/health.e2e-spec.ts
+
+Test Suites: 4 passed, 4 total
+Tests:       60 passed, 60 total
+```
+
+No uncertainties. Only `backend/tsconfig.build.json` changed.
+okay lets make the ui a littile better.
+1st make a second title bar below the search bar (yellow colour) for the filters instead of it being on the left. the all new used petrol diesel should also be in the filter itself.
+Next also add images once a car is clicked. remove 60 cars written on the ui. in the inventory management also add filters for the admin. and the grid of cars should now have 4 coloumns of cars.
+The admin page now has search, condition, and fuel-type filters with a reset control. I’ll run the build and the single-worker test suite to check the complete UI update.
+I'm giving an example. I want it to be light yellow shade below the main green title bar. like the one in light purple on the left. change it accordingly. no 2 rows of filter only one. also add a featured section with sliding cars. images in few seconds and below that the main catalogue
+Updated the catalogue layout to match your reference more closely:
+
+- Filters are now one horizontal, light-yellow strip directly below the green header.
+- No two-row filter panel; it scrolls horizontally on smaller screens.
+- Added a featured-car carousel above the main catalogue.
+- Featured cars switch automatically every 4 seconds, with clickable navigation dots.
+- Main catalogue remains below the carousel in four columns on large screens.
+
+Validation passed:
+
+```text
+npm run build
+✓ built in 1.77s
+
+npm test -- --maxWorkers=1 --minWorkers=1
+Test Files  10 passed (10)
+Tests       16 passed (16)
+```
