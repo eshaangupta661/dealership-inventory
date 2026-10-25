@@ -1,4 +1,4 @@
-# TDD Kata: Car Dealership Inventory System
+# AutoHub: Car Dealership Inventory System
 
 Author: Eshaan Gupta
 
