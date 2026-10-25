@@ -12,16 +12,20 @@ type ConfirmDialogProps = {
 
 export function ConfirmDialog({ open, title, description, confirmLabel, busy = false, onConfirm, onClose }: ConfirmDialogProps) {
   const cancelButton = useRef<HTMLButtonElement>(null);
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
+    previouslyFocused.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     cancelButton.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') closeRef.current();
     };
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [open, onClose]);
+    return () => { window.removeEventListener('keydown', onKeyDown); previouslyFocused.current?.focus(); };
+  }, [open]);
 
   if (!open) return null;
   return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4" onMouseDown={onClose}>

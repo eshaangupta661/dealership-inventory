@@ -8,6 +8,7 @@ import { ListingPage } from './pages/ListingPage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { VehicleDetailPage } from './pages/VehicleDetailPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 export function RequireAdmin({ children }: { children: ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
@@ -26,6 +27,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
     <Toaster position="top-right" />
   </div>;

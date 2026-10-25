@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -17,6 +17,9 @@ export function VehicleDetailPage() {
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const vehicleQuery = useQuery({ queryKey: ['vehicle', vehicleId], queryFn: () => getVehicle(vehicleId), enabled: Number.isInteger(vehicleId) && vehicleId > 0 });
+  useEffect(() => {
+    document.title = vehicleQuery.data ? `${vehicleQuery.data.make} ${vehicleQuery.data.model} | AutoHub` : 'Car details | AutoHub';
+  }, [vehicleQuery.data]);
   const purchaseMutation = useMutation({
     mutationFn: () => purchaseVehicle(vehicleId),
     onSuccess: async () => {
@@ -36,7 +39,10 @@ export function VehicleDetailPage() {
   });
 
   if (vehicleQuery.isLoading) return <main className="mx-auto max-w-5xl p-6">Loading vehicle…</main>;
-  if (vehicleQuery.isError || !vehicleQuery.data) return <main className="mx-auto max-w-5xl p-6"><p className="text-red-700">We could not load this vehicle.</p><button className="mt-3 rounded bg-brand-dark px-4 py-2 font-semibold text-white" onClick={() => vehicleQuery.refetch()}>Retry</button></main>;
+  if (vehicleQuery.isError || !vehicleQuery.data) {
+    if (vehicleQuery.error instanceof ApiError && vehicleQuery.error.status === 404) return <main className="mx-auto max-w-5xl p-6"><h1 className="text-2xl font-bold text-brand-dark">Car not found</h1><p className="mt-2 text-slate-700">This vehicle may have been removed.</p><button className="mt-3 rounded bg-brand-dark px-4 py-2 font-semibold text-white" onClick={() => navigate('/')}>Back to listings</button></main>;
+    return <main className="mx-auto max-w-5xl p-6"><p className="text-red-700">We could not load this vehicle.</p><button className="mt-3 rounded bg-brand-dark px-4 py-2 font-semibold text-white" onClick={() => vehicleQuery.refetch()}>Retry</button></main>;
+  }
 
   const vehicle = vehicleQuery.data;
   const fields = [['Vehicle ID', vehicle.id], ['Make', vehicle.make], ['Model', vehicle.model], ['Variant', vehicle.variant], ['Category', vehicle.category], ['Condition', vehicle.condition === 'NEW' ? 'New' : 'Used'], ['Fuel type', vehicle.fuelType], ['Transmission', vehicle.transmission], ['Year', vehicle.year], ['Kilometres driven', vehicle.kmDriven.toLocaleString('en-IN')], ['Owners', vehicle.ownerCount], ['Color', vehicle.color], ['Available quantity', vehicle.quantity], ['Image URL', vehicle.imageUrl ?? 'Not provided'], ['Created', new Date(vehicle.createdAt).toLocaleString()], ['Last updated', new Date(vehicle.updatedAt).toLocaleString()]];

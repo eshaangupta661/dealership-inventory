@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
@@ -6,6 +6,7 @@ const emailIsValid = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 const safeRedirect = (value: string | null) => value?.startsWith('/') && !value.startsWith('//') ? value : '/';
 
 export function LoginPage() {
+  useEffect(() => { document.title = 'Login | AutoHub'; }, []);
   const { login } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();

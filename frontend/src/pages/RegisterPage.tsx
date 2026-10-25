@@ -1,10 +1,11 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 
 const emailIsValid = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 export function RegisterPage() {
+  useEffect(() => { document.title = 'Register | AutoHub'; }, []);
   const { register } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
