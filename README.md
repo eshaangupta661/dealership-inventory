@@ -137,7 +137,7 @@ Some intermediate frontend commits do not build independently because `lib/` was
 
 I used Claude (free), ChatGPT Codex, and GitHub Copilot.
 
-Claude drafted the e2e test files and `InventoryService` (including atomic purchase and restock). I reviewed those changes, committed the tests before the implementation, and verified the result against the concurrency test. I did not write `InventoryService` alone.
+I drafted the e2e test files and `InventoryService` (including atomic purchase and restock) with the help of claude. I reviewed those changes, committed the tests before the implementation, and verified the result against the concurrency test. I did not write `InventoryService` alone.
 
 Codex generated the scaffold, auth and vehicles modules, seed, CORS, the whole frontend, and the dependency pin. Copilot helped resolve an inventory wiring issue.
 
