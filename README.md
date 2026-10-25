@@ -8,9 +8,12 @@ This hiring take-home is a full-stack car-dealership inventory application. It p
 
 The backend uses NestJS 11, TypeScript, Prisma 6.1.0, and PostgreSQL 16. The frontend uses React, Vite 6, Tailwind, react-router, and TanStack Query. Testing uses Jest with Supertest and Vitest with React Testing Library; GitHub Actions runs CI.
 
-Live demo: `https://dealership-inventory-eshaan661-s-projects2.vercel.app/`.
+## Live Demo
 
-The Render free tier sleeps when idle, so its first request can take 30 to 60 seconds.
+- **Frontend:** [Car Dealership Inventory System](https://dealership-inventory-eshaan661-s-projects2.vercel.app/)
+- **Backend API:** [AutoHub API](https://autohub-api-8pd1.onrender.com/)
+
+> **Note:** The backend is hosted on Render's free tier, so the first request after a period of inactivity may take some time to respond.
 
 ## Screenshots
 
