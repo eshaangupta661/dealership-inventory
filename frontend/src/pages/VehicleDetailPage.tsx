@@ -45,6 +45,7 @@ export function VehicleDetailPage() {
   }
 
   const vehicle = vehicleQuery.data;
+  const imageSource = vehicle.imageUrl || 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80';
   const fields = [['Vehicle ID', vehicle.id], ['Make', vehicle.make], ['Model', vehicle.model], ['Variant', vehicle.variant], ['Category', vehicle.category], ['Condition', vehicle.condition === 'NEW' ? 'New' : 'Used'], ['Fuel type', vehicle.fuelType], ['Transmission', vehicle.transmission], ['Year', vehicle.year], ['Kilometres driven', vehicle.kmDriven.toLocaleString('en-IN')], ['Owners', vehicle.ownerCount], ['Color', vehicle.color], ['Available quantity', vehicle.quantity], ['Image URL', vehicle.imageUrl ?? 'Not provided'], ['Created', new Date(vehicle.createdAt).toLocaleString()], ['Last updated', new Date(vehicle.updatedAt).toLocaleString()]];
   const buy = () => {
     if (vehicle.quantity === 0) return;
@@ -55,6 +56,7 @@ export function VehicleDetailPage() {
   return <main className="mx-auto max-w-5xl px-4 py-8">
     <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
       <div className="bg-gradient-to-br from-brand-dark to-emerald-600 p-8 text-white"><p className="text-sm uppercase tracking-widest text-emerald-100">{vehicle.make}</p><h1 className="mt-1 text-3xl font-bold">{vehicle.model}</h1><p className="mt-2">{vehicle.variant}</p></div>
+      <img src={imageSource} alt={`${vehicle.make} ${vehicle.model}`} className="h-64 w-full object-cover sm:h-96" onError={(event) => { event.currentTarget.src = 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=1200&q=80'; }} />
       <div className="grid gap-8 p-6 md:grid-cols-[1fr_auto]"><dl className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">{fields.map(([label, value]) => <div key={label}><dt className="text-sm font-medium text-slate-500">{label}</dt><dd className="mt-1 font-semibold text-slate-900">{value}</dd></div>)}</dl><div className="md:min-w-56"><p className="text-2xl font-bold text-brand-dark">{formatPrice(vehicle.price)}</p><button onClick={buy} disabled={vehicle.quantity === 0} className="mt-4 w-full rounded bg-brand-dark px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-400">{vehicle.quantity === 0 ? 'Sold out' : user ? 'Purchase' : 'Log in to purchase'}</button></div></div>
     </section>
     <ConfirmDialog open={confirming} title="Confirm purchase" description={`Purchase the ${vehicle.make} ${vehicle.model} for ${formatPrice(vehicle.price)}?`} confirmLabel="Confirm purchase" busy={purchaseMutation.isPending} onConfirm={() => purchaseMutation.mutate()} onClose={() => setConfirming(false)} />
