@@ -8,7 +8,7 @@ This hiring take-home is a full-stack car-dealership inventory application. It p
 
 The backend uses NestJS 11, TypeScript, Prisma 6.1.0, and PostgreSQL 16. The frontend uses React, Vite 6, Tailwind, react-router, and TanStack Query. Testing uses Jest with Supertest and Vitest with React Testing Library; GitHub Actions runs CI.
 
-Live demo: `TODO: add live demo URL`.
+Live demo: `https://dealership-inventory-eshaan661-s-projects2.vercel.app/`.
 
 The Render free tier sleeps when idle, so its first request can take 30 to 60 seconds.
 
@@ -157,11 +157,6 @@ I verified the work through tests, a clean-clone build, CI, and a manual browser
 - At startup, `/auth/me` with an expired token causes a session-expired redirect even on public pages.
 - Demo images are illustrative and may not match the vehicle's model, year, or colour.
 - Free-tier cold starts apply.
-
-## TODOs
-
-- TODO: add live demo URL.
-- TODO: list source, author and licence of every image used.
 
 ## Real test output
 
