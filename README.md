@@ -47,10 +47,6 @@ Purchasing is implemented as one atomic conditional `updateMany`: it requires `q
 
 The seed data is fully synthetic. It is generated from a hand-written list of 35 Indian-market models and creates 60 vehicles, with the first 5 at quantity 0. A scraped CarDekho CSV and the DVM-Car dataset were considered but rejected because of licence/scraping concerns and market mismatch.
 
-### Image credits
-
-TODO: list source, author and licence of every image used.
-
 ## API reference
 
 All routes are under `/api`.
@@ -115,24 +111,6 @@ These credentials are for the seeded demo data only.
 
 - Admin: `admin@dealer.com` / `Admin@12345`
 - Customer: `customer@dealer.com` / `Customer@12345`
-
-## Screenshots
-
-### Public vehicle catalogue
-
-![Public vehicle catalogue](docs/screenshots/catalogue.png)
-
-### Admin inventory management
-
-![Admin inventory management](docs/screenshots/admin-inventory.png)
-
-### Login
-
-![Login page](docs/screenshots/login.png)
-
-### Vehicle detail and purchase
-
-![Vehicle detail and purchase](docs/screenshots/vehicle-detail.png)
 
 ## Test report
 
